@@ -84,26 +84,30 @@ public class ZoneEventHandler {
                         // Muestra la zona actual y sus multiplicadores al jugador que lo ejecuta.
                         .then(Commands.literal("info")
                                 .executes(ctx -> {
+                                    DontGoTooFar.LOGGER.info("[DGTF] /dgtf info ejecutado");
                                     CommandSourceStack source = ctx.getSource();
-                                    ServerPlayer player = source.getPlayerOrException();
+                                    if (!(source.getEntity() instanceof ServerPlayer player)) {
+                                        source.sendFailure(Component.literal("Solo jugadores."));
+                                        return 0;
+                                    }
+
                                     int zone = ZoneManager.getZone(player);
                                     String zoneName = ZoneManager.getZoneName(zone);
 
                                     double damage = MobStatHandler.getDamageMultiplier(zone);
                                     double health = MobStatHandler.getHealthMultiplier(zone);
-                                    double speed = MobStatHandler.getSpeedMultiplier(zone);
-                                    double spawn = MobStatHandler.getSpawnMultiplier(zone);
+                                    double speed  = MobStatHandler.getSpeedMultiplier(zone);
+                                    double spawn  = MobStatHandler.getSpawnMultiplier(zone);
 
-                                    source.sendSuccess(
-                                            () -> Component.literal(
-                                                    "§6[DGTF] §f" + zoneName + "\n" +
-                                                            "§c Daño: §fx" + damage +
-                                                            " §a Vida: §fx" + health +
-                                                            " §b Velocidad: §fx" + speed +
-                                                            " §e Spawn: §fx" + spawn
-                                            ),
-                                            false
-                                    );
+                                    // Mandamos el mensaje directamente al jugador, sin pasar por sendSuccess
+                                    player.sendSystemMessage(Component.literal(
+                                            "§6[DGTF] §f" + zoneName + "\n" +
+                                                    "§c Daño: §fx" + damage +
+                                                    " §a Vida: §fx" + health +
+                                                    " §b Velocidad: §fx" + speed +
+                                                    " §e Spawn: §fx" + spawn
+                                    ));
+
                                     return 1;
                                 })
                         )
@@ -113,8 +117,12 @@ public class ZoneEventHandler {
                                 .requires(src -> src.hasPermission(2))
                                 .then(Commands.argument("jugador", StringArgumentType.word())
                                         .executes(ctx -> {
-                                            String targetName = StringArgumentType.getString(ctx, "jugador");
                                             CommandSourceStack source = ctx.getSource();
+                                            if (!(source.getEntity() instanceof ServerPlayer player)) {
+                                                source.sendFailure(Component.literal("Solo jugadores."));
+                                                return 0;
+                                            }
+                                            String targetName = StringArgumentType.getString(ctx, "jugador");
                                             ServerLevel level = source.getLevel();
 
                                             ServerPlayer target = level.getServer()
@@ -122,7 +130,7 @@ public class ZoneEventHandler {
                                                     .getPlayerByName(targetName);
 
                                             if (target == null) {
-                                                source.sendFailure(
+                                                player.sendSystemMessage(
                                                         Component.literal("Jugador no encontrado: " + targetName)
                                                 );
                                                 return 0;
@@ -130,9 +138,8 @@ public class ZoneEventHandler {
 
                                             int zone = ZoneManager.getZone(target);
                                             String zoneName = ZoneManager.getZoneName(zone);
-                                            source.sendSuccess(
-                                                    () -> Component.literal(targetName + " está en: " + zoneName),
-                                                    false
+                                            player.sendSystemMessage(
+                                                    Component.literal(targetName + " está en: " + zoneName)
                                             );
                                             return 1;
                                         })
