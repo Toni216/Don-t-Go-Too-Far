@@ -80,7 +80,9 @@ public class HordeHandler {
             if (mob == null) continue;
 
             mob.moveTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5, 0, 0);
-            MobStatHandler.applyStats(mob);
+            // FIX: applyStats se elimina aquí. El evento FinalizeSpawn en ZoneEventHandler
+            // lo llama automáticamente al hacer addFreshEntity, así que aplicarlo aquí
+            // causaba que los stats se duplicasen (doble vida, doble velocidad, etc.).
             level.addFreshEntity(mob);
         }
 
@@ -172,7 +174,11 @@ public class HordeHandler {
 
     private static void resetHordes(ServerLevel level) {
         for (ServerPlayer player : level.players()) {
-            wavesRemaining.remove(player.getUUID());
+            UUID uuid = player.getUUID();
+            wavesRemaining.remove(uuid);
+            // FIX: también limpiamos lastWaveTick al amanecer, para que la primera
+            // oleada de la noche siguiente no espere el tiempo residual del día anterior.
+            lastWaveTick.remove(uuid);
         }
     }
 
