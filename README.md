@@ -14,10 +14,10 @@ Designed for post-apocalyptic zombie survival servers.
 | Zone | Distance from spawn | Difficulty |
 |------|---------------------|------------|
 | 1 — Safe Lands | 0 – 500 | Normal |
-| 2 — Frontier | 500 – 1500 | Moderate |
-| 3 — Wildlands | 1500 – 3000 | Hard |
-| 4 — The Abyss | 3000 – 5000 | Extreme |
-| 5 — Beyond | 5000+ | Maximum |
+| 2 — Frontier | 500 – 1000 | Moderate |
+| 3 — Wildlands | 1000 – 1500 | Hard |
+| 4 — The Abyss | 1500 – 2000 | Extreme |
+| 5 — Beyond | 2000+ | Maximum |
 
 All zone boundaries are fully configurable.
 
@@ -43,9 +43,9 @@ On first launch, a `dontgotoofar-server.toml` file is generated in your `serverc
 ```toml
 [zones]
   zone1_max = 500
-  zone2_max = 1500
-  zone3_max = 3000
-  zone4_max = 5000
+  zone2_max = 1000
+  zone3_max = 1500
+  zone4_max = 2000
 
 [zone5]
   damage = 3.0
