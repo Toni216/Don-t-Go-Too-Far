@@ -27,11 +27,12 @@ import net.minecraftforge.fml.common.Mod;
 public class ZoneEventHandler {
 
     @SubscribeEvent
-    public static void onMobSpawn(MobSpawnEvent.FinalizeSpawn event) {
-        Mob mob = event.getEntity();
-        if (!(mob.level() instanceof ServerLevel)) return;
-
-        MobStatHandler.applyStats(mob);
+    public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
+        if (event.getLevel().isClientSide()) return;
+        if (event.getEntity() instanceof Mob mob) {
+            MobStatHandler.applyStats(mob);
+        }
+        ZombieDayHandler.onEntityJoinLevel(event);
     }
 
     @SubscribeEvent
@@ -53,10 +54,6 @@ public class ZoneEventHandler {
         ZombieDayHandler.onLivingTick(event);
     }
 
-    @SubscribeEvent
-    public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
-        ZombieDayHandler.onEntityJoinLevel(event);
-    }
 
     // Solo procesamos las hordas al final del tick (Phase.END) y solo en el Overworld.
     @SubscribeEvent
