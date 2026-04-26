@@ -5,6 +5,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -20,10 +21,13 @@ public class MobStatHandler {
      * en cada comprobación. Se invalida si la referencia de la lista cambia.
      */
     private static Set<String> affectedMobsCache = null;
+    private static List<? extends String> lastSeenList = null;
 
     private static Set<String> getAffectedMobs() {
-        if (affectedMobsCache == null) {
+        List<? extends String> current = ZoneConfig.AFFECTED_MOBS.get();
+        if (affectedMobsCache == null || current != lastSeenList) {
             affectedMobsCache = new HashSet<>(ZoneConfig.AFFECTED_MOBS.get());
+            lastSeenList = current;
         }
         return affectedMobsCache;
     }
