@@ -7,13 +7,18 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.state.BlockState;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Gestiona las hordas nocturnas de mobs. Cada noche spawnea oleadas escalonadas
+ * alrededor de cada jugador, con el número de oleadas escalando según su zona (1–5).
+ * Al amanecer resetea el estado de todos los jugadores para la noche siguiente.
+ * El pool de mobs y sus pesos se configuran en horde_mobs del config.
+ */
 public class HordeHandler {
 
     /**

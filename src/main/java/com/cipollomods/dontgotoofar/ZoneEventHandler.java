@@ -18,8 +18,10 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 /**
- * @Mod.EventBusSubscriber hace que Forge registre automáticamente todos los
- * métodos @SubscribeEvent de esta clase. Sin esto, los eventos no se dispararían.
+ * Punto de entrada de todos los eventos de Forge para el mod.
+ * Delega cada evento al handler correspondiente y registra los comandos /dgtf.
+ * La anotación @Mod.EventBusSubscriber hace que Forge registre automáticamente
+ * todos los métodos @SubscribeEvent de esta clase.
  */
 @Mod.EventBusSubscriber(modid = DontGoTooFar.MOD_ID)
 public class ZoneEventHandler {
@@ -36,7 +38,6 @@ public class ZoneEventHandler {
     public static void onPositionCheck(MobSpawnEvent.PositionCheck event) {
         SpawnRateHandler.onPositionCheck(event);
     }
-
 
     @SubscribeEvent
     public static void onLivingHurt(LivingHurtEvent event) {

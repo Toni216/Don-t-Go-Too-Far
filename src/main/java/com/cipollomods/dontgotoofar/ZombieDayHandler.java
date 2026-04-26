@@ -6,6 +6,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
+/**
+ * Hace que los zombies sean inmunes al fuego durante el día.
+ * Al entrar al mundo se elimina su goal de huir del sol, y por tick se apaga
+ * cualquier fuego activo si es de día. Ambos comportamientos son opcionales
+ * y se desactivan si zombie_fire_immune está a false en el config.
+ */
 public class ZombieDayHandler {
 
     /**

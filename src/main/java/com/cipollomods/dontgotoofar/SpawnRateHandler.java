@@ -5,25 +5,27 @@ import net.minecraft.world.entity.Mob;
 import net.minecraftforge.event.entity.living.MobSpawnEvent;
 import net.minecraftforge.eventbus.api.Event;
 
+/**
+ * Controla la tasa de spawn de mobs según la zona del jugador más cercano.
+ * Con multiplicador < 1.0 cancela spawns probabilísticamente; con multiplicador > 1.0
+ * spawnea mobs extra usando la parte entera como garantizados y la decimal como probabilidad.
+ */
 public class SpawnRateHandler {
 
     public static void onPositionCheck(MobSpawnEvent.PositionCheck event) {
         Mob mob = event.getEntity();
-
         if (!(mob.level() instanceof ServerLevel serverLevel)) return;
 
         String mobId = mob.getType().builtInRegistryHolder().key().location().toString();
         if (!ZoneConfig.AFFECTED_MOBS.get().contains(mobId)) return;
 
-        int zone = getNearestPlayerZone(mob, serverLevel);
+        int zone = ZoneManager.getNearestPlayerZone(mob, serverLevel);
         if (zone == -1) return;
 
         double multiplier = MobStatHandler.getSpawnMultiplier(zone);
-
         if (multiplier == 1.0) return;
 
         if (multiplier < 1.0) {
-            // Zona segura o poco peligrosa: cancelamos spawns aleatoriamente.
             double cancelChance = 1.0 - multiplier;
             if (serverLevel.random.nextDouble() < cancelChance) {
                 event.setResult(Event.Result.DENY);
@@ -31,16 +33,10 @@ public class SpawnRateHandler {
                         mob.getType().toShortString(), zone, (int)(cancelChance * 100));
             }
         } else {
-            // multiplier > 1.0: intentamos spawnear mobs extra con probabilidad acumulada.
-            // Ejemplo: 2.5 → spawna 2 extras garantizados + 50% de un tercero.
+            // multiplier > 1.0: parte entera = extras garantizados, parte decimal = probabilidad de uno más.
             double extraSpawns = multiplier - 1.0;
-
-            // Parte entera: spawns extra garantizados.
             int guaranteedExtras = (int) extraSpawns;
-
-            // Parte decimal: probabilidad de un spawn extra adicional.
             double partialChance = extraSpawns - guaranteedExtras;
-
             int totalExtras = guaranteedExtras + (serverLevel.random.nextDouble() < partialChance ? 1 : 0);
 
             for (int i = 0; i < totalExtras; i++) {
@@ -48,7 +44,7 @@ public class SpawnRateHandler {
                 if (extra == null) continue;
 
                 extra.moveTo(mob.getX(), mob.getY(), mob.getZ(), mob.getYRot(), 0);
-                MobStatHandler.applyStats(extra);
+                // FIX: applyStats eliminado — FinalizeSpawn lo llama al hacer addFreshEntity.
                 serverLevel.addFreshEntity(extra);
             }
 
@@ -57,17 +53,5 @@ public class SpawnRateHandler {
                         totalExtras, mob.getType().toShortString(), zone, multiplier);
             }
         }
-    }
-
-    /**
-     * Busca el jugador superviviente más cercano al mob y devuelve su zona.
-     * Devuelve -1 si no hay ningún jugador válido en el nivel.
-     */
-    private static int getNearestPlayerZone(Mob mob, ServerLevel level) {
-        return level.players().stream()
-                .filter(p -> !p.isSpectator() && !p.isCreative())
-                .min((a, b) -> Double.compare(a.distanceToSqr(mob), b.distanceToSqr(mob)))
-                .map(ZoneManager::getZone)
-                .orElse(-1);
     }
 }

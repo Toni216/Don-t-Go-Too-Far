@@ -3,9 +3,13 @@ package com.cipollomods.dontgotoofar;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
-
 import java.util.List;
 
+/**
+ * Define y registra la configuración del servidor en dontgotoofar-server.toml.
+ * Expone los límites de cada zona, los multiplicadores de daño/vida/velocidad/spawn
+ * por zona, y los parámetros de hordas y optimización de caché.
+ */
 public class ZoneConfig {
 
     // SERVER_SPEC es el objeto que Forge usa para leer y validar el archivo .toml.
