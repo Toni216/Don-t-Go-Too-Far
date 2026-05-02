@@ -181,8 +181,6 @@ public class HordeHandler {
         for (ServerPlayer player : level.players()) {
             UUID uuid = player.getUUID();
             wavesRemaining.remove(uuid);
-            // FIX: también limpiamos lastWaveTick al amanecer, para que la primera
-            // oleada de la noche siguiente no espere el tiempo residual del día anterior.
             lastWaveTick.remove(uuid);
         }
     }

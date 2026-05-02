@@ -44,7 +44,6 @@ public class SpawnRateHandler {
                 if (extra == null) continue;
 
                 extra.moveTo(mob.getX(), mob.getY(), mob.getZ(), mob.getYRot(), 0);
-                // FIX: applyStats eliminado — FinalizeSpawn lo llama al hacer addFreshEntity.
                 serverLevel.addFreshEntity(extra);
             }
 

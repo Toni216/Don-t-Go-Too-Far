@@ -45,8 +45,8 @@ public class MobStatHandler {
         if (!(mob.level() instanceof ServerLevel serverLevel)) return;
         if (!isAffected(mob)) return;
 
-        int zone = ZoneManager.getNearestPlayerZone(mob, serverLevel);
-        if (zone == -1) return;
+        // Calcular la zona por posición del mob, no por jugador cercano
+        int zone = ZoneManager.getZoneByPosition(mob.position());
 
         applyHealth(mob, zone);
         applySpeed(mob, zone);

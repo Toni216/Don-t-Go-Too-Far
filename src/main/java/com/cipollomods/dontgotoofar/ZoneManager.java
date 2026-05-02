@@ -87,4 +87,15 @@ public class ZoneManager {
             default -> "Zona desconocida";
         };
     }
+
+    /**
+     * Devuelve la zona correspondiente a una posición en el mundo, sin depender de jugadores.
+     * Se usa al spawnear mobs: en ese momento puede que no haya ningún jugador en el nivel
+     * todavía (carga inicial del mundo, chunks precargados, etc.), así que calcular la zona
+     * por la posición del propio mob es más fiable y semánticamente correcto — el mob vive
+     * en esa zona, independientemente de dónde esté el jugador en ese instante.
+     */
+    public static int getZoneByPosition(Vec3 pos) {
+        return calculateZone(pos);
+    }
 }
