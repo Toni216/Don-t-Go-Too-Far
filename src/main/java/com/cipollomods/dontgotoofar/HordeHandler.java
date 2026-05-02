@@ -21,10 +21,6 @@ import java.util.UUID;
  */
 public class HordeHandler {
 
-    /**
-     * Guardamos el tick de la última oleada y las oleadas restantes por jugador.
-     * Usamos UUID como clave para identificar a cada jugador de forma única.
-     */
     private static final Map<UUID, Long> lastWaveTick = new HashMap<>();
     private static final Map<UUID, Integer> wavesRemaining = new HashMap<>();
 
@@ -47,7 +43,6 @@ public class HordeHandler {
             int zone = ZoneManager.getZone(player);
             int maxWaves = getMaxWaves(zone);
 
-            // Primera vez que vemos a este jugador esta noche: inicializamos su horda.
             if (!wavesRemaining.containsKey(uuid)) {
                 wavesRemaining.put(uuid, maxWaves);
             }
@@ -74,7 +69,6 @@ public class HordeHandler {
         }
 
         for (int i = 0; i < mobsPerWave; i++) {
-            // Posición aleatoria en un radio de 16 bloques alrededor del jugador.
             int offsetX = (level.random.nextInt(32) - 16);
             int offsetZ = (level.random.nextInt(32) - 16);
             BlockPos spawnPos = findSafeSpawnPos(level, playerPos.offset(offsetX, 0, offsetZ));
@@ -85,9 +79,6 @@ public class HordeHandler {
             if (mob == null) continue;
 
             mob.moveTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5, 0, 0);
-            // FIX: applyStats se elimina aquí. El evento FinalizeSpawn en ZoneEventHandler
-            // lo llama automáticamente al hacer addFreshEntity, así que aplicarlo aquí
-            // causaba que los stats se duplicasen (doble vida, doble velocidad, etc.).
             level.addFreshEntity(mob);
         }
 
@@ -160,7 +151,6 @@ public class HordeHandler {
         return null;
     }
 
-    // El número de oleadas por noche escala con la zona: zona 1 = 1 oleada, zona 5 = 5 oleadas.
     private static int getMaxWaves(int zone) {
         return switch (zone) {
             case 1 -> 1;

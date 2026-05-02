@@ -10,7 +10,7 @@ import java.util.Set;
 
 /**
  * Aplica los multiplicadores de zona a los atributos de los mobs afectados.
- * La vida y la velocidad se modifican al spawnear (FinalizeSpawn), el daño
+ * La vida y la velocidad se modifican al spawnear (onEntityJoinLevel), el daño
  * se intercepta en LivingHurtEvent para no alterar el atributo base del mob.
  * Solo actúa sobre los mobs definidos en affected_mobs del config.
  */
