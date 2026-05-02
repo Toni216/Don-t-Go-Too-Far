@@ -18,10 +18,13 @@ public class ZoneManager {
 
     private static final Map<UUID, Integer> zoneCache = new HashMap<>();
     private static final Map<UUID, Vec3> lastCalcPos = new HashMap<>();
+    private static final Map<UUID, Integer> previousZone = new HashMap<>();
 
     /**
      * Devuelve la zona del jugador (1-5).
      * Solo recalcula si el jugador se ha movido más de cache_recalc_distance bloques.
+     * Cuando la zona cambia, guarda la anterior en previousZone para que
+     * ZoneEventHandler pueda detectarlo y notificar al jugador.
      */
     public static int getZone(ServerPlayer player) {
         UUID uuid = player.getUUID();
@@ -31,13 +34,35 @@ public class ZoneManager {
         recalcDistanceSq *= recalcDistanceSq;
 
         if (lastPos == null || distanceXZSq(currentPos, lastPos) >= recalcDistanceSq) {
+            int oldZone = zoneCache.getOrDefault(uuid, -1);
             int zone = calculateZone(currentPos);
+
+            if (oldZone != -1 && oldZone != zone) {
+                previousZone.put(uuid, oldZone);
+            }
+
             zoneCache.put(uuid, zone);
             lastCalcPos.put(uuid, currentPos);
             return zone;
         }
 
         return zoneCache.getOrDefault(uuid, 1);
+    }
+
+    /**
+     * Indica si el jugador acaba de cruzar una frontera de zona en el último recálculo.
+     */
+    public static boolean hasZoneChanged(UUID uuid) {
+        return previousZone.containsKey(uuid);
+    }
+
+    /**
+     * Elimina y devuelve la zona anterior del jugador.
+     * Debe llamarse solo si hasZoneChanged() devuelve true.
+     * Se consume al leerla para que la notificación solo se dispare una vez.
+     */
+    public static int consumePreviousZone(UUID uuid) {
+        return previousZone.remove(uuid);
     }
 
     /**
@@ -53,7 +78,6 @@ public class ZoneManager {
     }
 
     private static int calculateZone(Vec3 pos) {
-        // Comparamos distancias al cuadrado para evitar Math.sqrt en cada recálculo.
         double distSq = pos.x * pos.x + pos.z * pos.z;
         int z1 = ZoneConfig.ZONE1_MAX.get(), z2 = ZoneConfig.ZONE2_MAX.get(),
                 z3 = ZoneConfig.ZONE3_MAX.get(), z4 = ZoneConfig.ZONE4_MAX.get();
@@ -65,7 +89,6 @@ public class ZoneManager {
         return 5;
     }
 
-    // Ignoramos Y porque las zonas son horizontales.
     private static double distanceXZSq(Vec3 a, Vec3 b) {
         double dx = a.x - b.x;
         double dz = a.z - b.z;
@@ -75,16 +98,32 @@ public class ZoneManager {
     public static void clearCache(UUID uuid) {
         zoneCache.remove(uuid);
         lastCalcPos.remove(uuid);
+        previousZone.remove(uuid);
     }
 
     public static String getZoneName(int zone) {
         return switch (zone) {
-            case 1 -> "Zona 1 — Tierras Seguras";
-            case 2 -> "Zona 2 — Frontera";
-            case 3 -> "Zona 3 — Tierras Salvajes";
-            case 4 -> "Zona 4 — Abismo";
-            case 5 -> "Zona 5 — Más Allá";
-            default -> "Zona desconocida";
+            case 1 -> "Zone 1 — Safe Lands";
+            case 2 -> "Zone 2 — Frontier";
+            case 3 -> "Zone 3 — Wildlands";
+            case 4 -> "Zone 4 — The Abyss";
+            case 5 -> "Zone 5 — Beyond";
+            default -> "Unknown Zone";
+        };
+    }
+
+    /**
+     * Devuelve el código de color de Minecraft para cada zona.
+     * Va de verde (segura) a rojo oscuro (máximo peligro).
+     */
+    public static String getZoneColor(int zone) {
+        return switch (zone) {
+            case 1 -> "§a";
+            case 2 -> "§e";
+            case 3 -> "§6";
+            case 4 -> "§c";
+            case 5 -> "§4";
+            default -> "§f";
         };
     }
 

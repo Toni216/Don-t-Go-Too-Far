@@ -54,8 +54,22 @@ public class ZoneEventHandler {
         ZombieDayHandler.onLivingTick(event);
     }
 
+    @SubscribeEvent
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+        if (!(event.player instanceof ServerPlayer player)) return;
+        if (player.isSpectator() || player.isCreative()) return;
 
-    // Solo procesamos las hordas al final del tick (Phase.END) y solo en el Overworld.
+        int zone = ZoneManager.getZone(player);
+
+        if (ZoneManager.hasZoneChanged(player.getUUID())) {
+            ZoneManager.consumePreviousZone(player.getUUID());
+            String color = ZoneManager.getZoneColor(zone);
+            String name = ZoneManager.getZoneName(zone);
+            player.displayClientMessage(Component.literal(color + name), true);
+        }
+    }
+
     @SubscribeEvent
     public static void onServerTick(TickEvent.LevelTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
@@ -65,7 +79,6 @@ public class ZoneEventHandler {
         HordeHandler.onServerTick(serverLevel);
     }
 
-    // Al desconectarse un jugador limpiamos su caché para no acumular datos inútiles.
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
@@ -79,17 +92,17 @@ public class ZoneEventHandler {
         event.getDispatcher().register(
                 Commands.literal("dgtf")
 
-                        // Muestra la zona actual y sus multiplicadores al jugador que lo ejecuta.
                         .then(Commands.literal("info")
                                 .executes(ctx -> {
                                     DontGoTooFar.LOGGER.info("[DGTF] /dgtf info ejecutado");
                                     CommandSourceStack source = ctx.getSource();
                                     if (!(source.getEntity() instanceof ServerPlayer player)) {
-                                        source.sendFailure(Component.literal("Solo jugadores."));
+                                        source.sendFailure(Component.literal("Players only."));
                                         return 0;
                                     }
 
                                     int zone = ZoneManager.getZone(player);
+                                    String color = ZoneManager.getZoneColor(zone);
                                     String zoneName = ZoneManager.getZoneName(zone);
 
                                     double damage = MobStatHandler.getDamageMultiplier(zone);
@@ -97,12 +110,11 @@ public class ZoneEventHandler {
                                     double speed  = MobStatHandler.getSpeedMultiplier(zone);
                                     double spawn  = MobStatHandler.getSpawnMultiplier(zone);
 
-                                    // Mandamos el mensaje directamente al jugador, sin pasar por sendSuccess
                                     player.sendSystemMessage(Component.literal(
-                                            "§6[DGTF] §f" + zoneName + "\n" +
-                                                    "§c Daño: §fx" + damage +
-                                                    " §a Vida: §fx" + health +
-                                                    " §b Velocidad: §fx" + speed +
+                                            "§6[DGTF] " + color + zoneName + "\n" +
+                                                    "§c Damage: §fx" + damage +
+                                                    " §a Health: §fx" + health +
+                                                    " §b Speed: §fx" + speed +
                                                     " §e Spawn: §fx" + spawn
                                     ));
 
@@ -110,14 +122,13 @@ public class ZoneEventHandler {
                                 })
                         )
 
-                        // Solo admins (nivel 2) pueden consultar la zona de otro jugador.
                         .then(Commands.literal("zone")
                                 .requires(src -> src.hasPermission(2))
                                 .then(Commands.argument("jugador", StringArgumentType.word())
                                         .executes(ctx -> {
                                             CommandSourceStack source = ctx.getSource();
                                             if (!(source.getEntity() instanceof ServerPlayer player)) {
-                                                source.sendFailure(Component.literal("Solo jugadores."));
+                                                source.sendFailure(Component.literal("Players only."));
                                                 return 0;
                                             }
                                             String targetName = StringArgumentType.getString(ctx, "jugador");
@@ -129,15 +140,16 @@ public class ZoneEventHandler {
 
                                             if (target == null) {
                                                 player.sendSystemMessage(
-                                                        Component.literal("Jugador no encontrado: " + targetName)
+                                                        Component.literal("Player not found: " + targetName)
                                                 );
                                                 return 0;
                                             }
 
                                             int zone = ZoneManager.getZone(target);
+                                            String color = ZoneManager.getZoneColor(zone);
                                             String zoneName = ZoneManager.getZoneName(zone);
                                             player.sendSystemMessage(
-                                                    Component.literal(targetName + " está en: " + zoneName)
+                                                    Component.literal(targetName + " is in: " + color + zoneName)
                                             );
                                             return 1;
                                         })
